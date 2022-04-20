@@ -123,8 +123,14 @@ public class MonochromeEncoder {
             String nextchar = array[t + 1];
 
             cont++;
+            boolean forceswitch=false;
+            if (cont==255){
+                forceswitch=true;
+            }
 
-            if (nextchar.equals(empty) && !currentchar.equals(empty)) {
+            
+            
+            if ((forceswitch&&currentchar.equals(empty))||(nextchar.equals(empty) && !currentchar.equals(empty))) {
 
                 //if (t==0) intoempties=true;
                 header.add(translateCtrlChar(intoempties, intopetsciis, intofulls));//save previous state
@@ -134,7 +140,7 @@ public class MonochromeEncoder {
                 intopetsciis = false;
                 intofulls = false;
                 cont = 0;
-            } else if (nextchar.equals(full) && !currentchar.equals(full)) {
+            } else if ((forceswitch&&currentchar.equals(full))||(nextchar.equals(full) && !currentchar.equals(full))) {
 
                 //if (t==0) intofulls=true;
                 header.add(translateCtrlChar(intoempties, intopetsciis, intofulls));//save previous state
@@ -144,7 +150,7 @@ public class MonochromeEncoder {
                 intopetsciis = false;
                 intofulls = true;
                 cont = 0;
-            } else if (isPetscii(nextchar) && notPetscii(currentchar)) {
+            } else if ((forceswitch&&currentchar.equals(full))||(isPetscii(nextchar) && notPetscii(currentchar))) {
 
                 //if (t==0) intopetsciis=true;
                 header.add(translateCtrlChar(intoempties, intopetsciis, intofulls));//save previous state
