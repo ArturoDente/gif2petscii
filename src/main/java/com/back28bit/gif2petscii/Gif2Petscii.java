@@ -39,45 +39,57 @@ public class Gif2Petscii {
             String[] petsciiatorArgs = {"/format=asm", "/target=" + tmp.getParent(), actualPath};
             Petsciiator petsciiator = new Petsciiator(petsciiatorArgs);
             petsciiator.run();
-            datas.add(Petsciiator.stringRepresentation);
+            int pos = datas.indexOf(Petsciiator.stringRepresentation);//we don't waste kb if a ram portion is already there
+            if (pos == -1) {
+                datas.add(Petsciiator.stringRepresentation);
+            } else {
+                datas.add("<referrer>" + pos + "</referrer>");
+            }
         }
 
         File forpath = new File(path);
-        String gifasmName=forpath.getAbsolutePath() + "gif.asm";
+        String gifasmName = forpath.getAbsolutePath() + "gif.asm";
         File gifasm = new File(gifasmName);
         if (gifasm.exists()) {
             try {
                 gifasm.delete();
             } catch (Exception del) {
-                System.out.println("error "+del.toString());
+                System.out.println("error " + del.toString());
             }
         }
-        
+
         try {
             gifasm.createNewFile();
         } catch (IOException ex) {
             Logger.getLogger(Gif2Petscii.class.getName()).log(Level.SEVERE, null, ex);
-            System.out.println("error "+ex.toString());
+            System.out.println("error " + ex.toString());
         }
 
         String mainloop = "                         decodestream petsciis<n>,header<n>\n";
         String loopstr = "";
         for (int t = 0; t < datas.size(); t++) {
-            loopstr += mainloop.replaceAll("<n>", "" + t)+"\n";
+            String dataFound = (String) datas.elementAt(t);
+            if (!dataFound.startsWith("<referrer>")) {
+                loopstr += mainloop.replaceAll("<n>", "" + t) + "\n";
+            } else {
+                loopstr += mainloop.replaceAll("<n>", "" + (dataFound.split("</referrer>")[0]).split("<referrer>")[1]) + "\n";
+            }
         }
         //System.out.println(MonochromeEncoder.getAsmPattern().replaceFirst("<decodestream>", loopstr));
-        appendStrToFile(MonochromeEncoder.getAsmPattern().replaceFirst("<decodestream>", loopstr)+"\n",gifasmName);
+        appendStrToFile(MonochromeEncoder.getAsmPattern().replaceFirst("<decodestream>", loopstr) + "\n", gifasmName);
 
         for (int t = 0; t < datas.size(); t++) {
             MonochromeEncoder.n = t;
             //System.out.println(MonochromeEncoder.encode((String) datas.elementAt(t)));
-            
-        appendStrToFile(MonochromeEncoder.encode((String) datas.elementAt(t))+"\n",gifasmName);
+
+            String dataFound = (String) datas.elementAt(t);
+            if(!dataFound.startsWith("<referrer>"))
+                appendStrToFile(MonochromeEncoder.encode((String) datas.elementAt(t)) + "\n", gifasmName);
         }
 
     }
 
-    public static void appendStrToFile(String str,String fileName) {
+    public static void appendStrToFile(String str, String fileName) {
         // Try block to check for exceptions
         try {
 
