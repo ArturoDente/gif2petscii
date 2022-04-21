@@ -23,12 +23,49 @@ import monoEncoder.MonochromeEncoder;
  */
 public class Gif2Petscii {
 
+    private static String getPropFromArgs(String prop, String[] args) {
+        if (args == null || args.length == 0) {
+            return "";
+        }
+        //prop starts with minus sign
+        for (int t = 0; t < args.length; t++) {
+            if (args[t].toLowerCase().startsWith(prop.toLowerCase())) {
+                return args[t + 1].trim();
+            }
+        }
+        return "";
+    }
+
+    private static void getHelp(){
+    
+        String h="Gif2Petscii - create ASM code for monochromatic Petscii animations from a gif\n";
+        h+="\nby Francesco Clementoni aka Arturo Dente aka Back to the 8 bit\n"+
+        "\n--------------------------------------------------------------\n"+
+        "usage: java -jar Gif2Petscii.jar <options>, where options are:\n"+
+        "\n-s <source gif file> ->the gif to convert (REQUIRED)"+
+        "\n-c <number> -> the number from where to start the labels for the petscii ram area in the asm code;it's useful if you want to combine more gifs together, starting from the ending of the previous one";
+        
+        System.out.println(h);
+    }
+    
     public static void main(String[] args) {
 
         //Petsciiator.fileList=new Vector();
         Vector datas = new Vector();
-        String path = args[0];
-
+        int deltacount=0;
+        //String path = args[0];
+        
+        String path=getPropFromArgs("-s",args);
+        if (args==null || path.trim().equals("")){
+            getHelp();
+            System.exit(1);
+        }
+        
+        String c=getPropFromArgs("-c", args);
+        if (!c.equals("")){
+            deltacount=Integer.valueOf(c);
+        }
+        
         GifDecoder decoder = new GifDecoder();
         Vector pngs = decoder.stripGifInPngs(path);
         //now path has given a lot of png files, I have to elaborate each one
@@ -63,6 +100,7 @@ public class Gif2Petscii {
         } catch (IOException ex) {
             Logger.getLogger(Gif2Petscii.class.getName()).log(Level.SEVERE, null, ex);
             System.out.println("error " + ex.toString());
+            System.exit(1);
         }
 
         String mainloop = "                         decodestream petsciis<n>,header<n>\n";
@@ -70,21 +108,22 @@ public class Gif2Petscii {
         for (int t = 0; t < datas.size(); t++) {
             String dataFound = (String) datas.elementAt(t);
             if (!dataFound.startsWith("<referrer>")) {
-                loopstr += mainloop.replaceAll("<n>", "" + t) + "\n";
+                loopstr += mainloop.replaceAll("<n>", "" + (new Integer(t+deltacount)).toString()) + "\n";
             } else {
-                loopstr += mainloop.replaceAll("<n>", "" + (dataFound.split("</referrer>")[0]).split("<referrer>")[1]) + "\n";
+                loopstr += mainloop.replaceAll("<n>", "" + (int)((int)deltacount+(int)Integer.parseInt((dataFound.split("</referrer>")[0]).split("<referrer>")[1]))) + "\n";
             }
         }
         //System.out.println(MonochromeEncoder.getAsmPattern().replaceFirst("<decodestream>", loopstr));
         appendStrToFile(MonochromeEncoder.getAsmPattern().replaceFirst("<decodestream>", loopstr) + "\n", gifasmName);
 
         for (int t = 0; t < datas.size(); t++) {
-            MonochromeEncoder.n = t;
+            MonochromeEncoder.n = t+deltacount;
             //System.out.println(MonochromeEncoder.encode((String) datas.elementAt(t)));
 
             String dataFound = (String) datas.elementAt(t);
-            if(!dataFound.startsWith("<referrer>"))
+            if (!dataFound.startsWith("<referrer>")) {
                 appendStrToFile(MonochromeEncoder.encode((String) datas.elementAt(t)) + "\n", gifasmName);
+            }
         }
 
     }
