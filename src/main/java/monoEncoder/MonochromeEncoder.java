@@ -114,6 +114,7 @@ public class MonochromeEncoder {
         boolean intopetsciis = isPetscii(array[0]);
         boolean intoempties = array[0].equals(empty);
         boolean intofulls = array[0].equals(full);
+        boolean intopetsciisEquals=false;
 
         String headerstr = "";
         String petsciistr = "";
@@ -150,7 +151,7 @@ public class MonochromeEncoder {
                 intopetsciis = false;
                 intofulls = true;
                 cont = 0;
-            } else if ((forceswitch&&currentchar.equals(full))||(isPetscii(nextchar) && notPetscii(currentchar))) {
+            } else if ((forceswitch&&isPetscii(currentchar))||(isPetscii(nextchar) && notPetscii(currentchar))) {
 
                 //if (t==0) intopetsciis=true;
                 header.add(translateCtrlChar(intoempties, intopetsciis, intofulls));//save previous state
