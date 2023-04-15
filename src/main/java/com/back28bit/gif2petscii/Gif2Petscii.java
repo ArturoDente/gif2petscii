@@ -76,6 +76,11 @@ public class Gif2Petscii {
             String[] petsciiatorArgs = {"/format=asm", "/target=" + tmp.getParent(), actualPath};
             Petsciiator petsciiator = new Petsciiator(petsciiatorArgs);
             petsciiator.run();
+            try {
+                tmp.delete();
+            } catch (Exception del){
+                
+            }
             int pos = datas.indexOf(Petsciiator.stringRepresentation);//we don't waste kb if a ram portion is already there
             if (pos == -1) {
                 datas.add(Petsciiator.stringRepresentation);
