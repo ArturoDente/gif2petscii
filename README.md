@@ -29,5 +29,7 @@ For this tool I have implemented a simple RLE algorithm to compress the petsciis
 
 Anyway, compile the asm code and see the result, it should work good for gifs with not too many frames.
 
+Hint: use ezgif.com to optimize, reduce and monochromize your gifs before using this program.
+
 ## Credits ##
 I use [Petsciiator](https://github.com/EgonOlsen71/petsciiator) inside the tool to convert gif frames into petsciis.
