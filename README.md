@@ -1,5 +1,5 @@
 # gif2petscii
-*A tool to generate the Asm code for a monochrome petscii animation starting from a gif file*
+*A tool to generate the Asm C64 code for a monochrome petscii animation starting from a gif file*
 
 ## What it is ##
 Gif to Petscii is a tool written in Java (I use version 11 in my envorinment, so probably you should have same version or above) that takes as input the path of a gif file and returns the asm code to copy paste into Cbm Prg Studio to compile and get the final .prg file ready to show the gif as a petscii animation.
