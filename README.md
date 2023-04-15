@@ -4,7 +4,7 @@
 ## What it is ##
 Gif to Petscii is a tool written in Java (I use version 11 in my envorinment, so probably you should have same version or above) that takes as input the path of a gif file and returns the asm code to copy paste into Cbm Prg Studio to compile and get the final .prg file ready to show the gif as a petscii animation.
 
-Watch my [Star Wars tribute](https://youtu.be/MBeG2z_sKr4?t=5) of [Freddie Mercury tribute](https://youtu.be/mji0jbTy2w8?t=6)  videos to have an idea of the final result.
+Watch my [Star Wars tribute](https://youtu.be/MBeG2z_sKr4?t=5) or [Freddie Mercury tribute](https://youtu.be/mji0jbTy2w8?t=6)  videos to have an idea of the final result.
 
 ## What it is not ##
 Gif to Petscii is not your replacement. It's intended for asm developers, even if the code will work you will want to edit it, to move memory in other locations, add sid tunes and whatever else.
