@@ -36,57 +36,57 @@ public class Gif2Petscii {
         return "";
     }
 
-    private static void getHelp(){
-    
-        String h="Gif2Petscii - create ASM code for monochromatic Petscii animations from a gif\n";
-        h+="\nby Francesco Clementoni aka Arturo Dente aka Back to the 8 bit\n"+
-        "\n--------------------------------------------------------------\n"+
-        "usage: java -jar Gif2Petscii.jar <options>, where options are:\n"+
-        "\n-s <source gif file> ->the gif to convert (REQUIRED)"+
-        "\n-c <number> -> the number from where to start the labels for the petscii ram area in the asm code;it's useful if you want to combine more gifs together, starting from the ending of the previous one";
-        
+    private static void getHelp() {
+
+        String h = "Gif2Petscii - create ASM code for monochromatic Petscii animations from a gif\n";
+        h += "\nby Francesco Clementoni aka Arturo Dente aka Back to the 8 bit\n"
+                + "\n--------------------------------------------------------------\n"
+                + "usage: java -jar Gif2Petscii.jar <options>, where options are:\n"
+                + "\n-s <source gif file> ->the gif to convert (REQUIRED)"
+                + "\n-c <number> -> the number from where to start the labels for the petscii ram area in the asm code;it's useful if you want to combine more gifs together, starting from the ending of the previous one";
+
         System.out.println(h);
     }
-    
+
     public static void main(String[] args) {
 
         //Petsciiator.fileList=new Vector();
         Vector datas = new Vector();
-        int deltacount=0;
+        int deltacount = 0;
         //String path = args[0];
-        
-        String path=getPropFromArgs("-s",args);
-        if (args==null || path.trim().equals("")){
+
+        String path = getPropFromArgs("-s", args);
+        if (args == null || path.trim().equals("")) {
             getHelp();
             System.exit(1);
         }
-        
-        String c=getPropFromArgs("-c", args);
-        if (!c.equals("")){
-            deltacount=Integer.valueOf(c);
+
+        String c = getPropFromArgs("-c", args);
+        if (!c.equals("")) {
+            deltacount = Integer.valueOf(c);
         }
-        
+
+        String f = getPropFromArgs("-f", args);
+        boolean isMono = true;
+        if (!f.equals("")) {
+            if (f.equals("colour")) {
+                isMono = false;
+            } else if (f.equals("mono")) {
+                isMono = true;
+            } else {
+                getHelp();
+                System.exit(1);
+            }
+        }
+
         GifDecoder decoder = new GifDecoder();
         Vector pngs = decoder.stripGifInPngs(path);
         //now path has given a lot of png files, I have to elaborate each one
 
-        for (int t = 0; t < pngs.size(); t++) {
-            String actualPath = (String) pngs.elementAt(t);
-            File tmp = new File(actualPath);
-            String[] petsciiatorArgs = {"/format=asm", "/target=" + tmp.getParent(), actualPath};
-            Petsciiator petsciiator = new Petsciiator(petsciiatorArgs);
-            petsciiator.run();
-            try {
-                tmp.delete();
-            } catch (Exception del){
-                
-            }
-            int pos = datas.indexOf(Petsciiator.stringRepresentation);//we don't waste kb if a ram portion is already there
-            if (pos == -1) {
-                datas.add(Petsciiator.stringRepresentation);
-            } else {
-                datas.add("<referrer>" + pos + "</referrer>");
-            }
+        if (isMono){
+            pngsToMonoPetsciis(datas, pngs);
+        } else {
+            
         }
 
         File forpath = new File(path);
@@ -108,31 +108,62 @@ public class Gif2Petscii {
             System.exit(1);
         }
 
-        String mainloop = "                         decodestream petsciis<n>,header<n>\n";
-        String loopstr = "";
-        for (int t = 0; t < datas.size(); t++) {
-            String dataFound = (String) datas.elementAt(t);
-            if (!dataFound.startsWith("<referrer>")) {
-                loopstr += mainloop.replaceAll("<n>", "" + (new Integer(t+deltacount)).toString()) + "\n";
-            } else {
-                loopstr += mainloop.replaceAll("<n>", "" + (int)((int)deltacount+(int)Integer.parseInt((dataFound.split("</referrer>")[0]).split("<referrer>")[1]))) + "\n";
+        if (isMono) {
+
+            String mainloop = "                         decodestream petsciis<n>,header<n>\n";
+            String loopstr = "";
+            for (int t = 0; t < datas.size(); t++) {
+                String dataFound = (String) datas.elementAt(t);
+                if (!dataFound.startsWith("<referrer>")) {
+                    loopstr += mainloop.replaceAll("<n>", "" + (new Integer(t + deltacount)).toString()) + "\n";
+                } else {
+                    loopstr += mainloop.replaceAll("<n>", "" + (int) ((int) deltacount + (int) Integer.parseInt((dataFound.split("</referrer>")[0]).split("<referrer>")[1]))) + "\n";
+                }
             }
-        }
-        //System.out.println(MonochromeEncoder.getAsmPattern().replaceFirst("<decodestream>", loopstr));
-        appendStrToFile(MonochromeEncoder.getAsmPattern().replaceFirst("<decodestream>", loopstr) + "\n", gifasmName);
+            //System.out.println(MonochromeEncoder.getAsmPattern().replaceFirst("<decodestream>", loopstr));
+            appendStrToFile(MonochromeEncoder.getAsmPattern().replaceFirst("<decodestream>", loopstr) + "\n", gifasmName);
 
-        for (int t = 0; t < datas.size(); t++) {
-            MonochromeEncoder.n = t+deltacount;
-            //System.out.println(MonochromeEncoder.encode((String) datas.elementAt(t)));
+            for (int t = 0; t < datas.size(); t++) {
+                MonochromeEncoder.n = t + deltacount;
+                //System.out.println(MonochromeEncoder.encode((String) datas.elementAt(t)));
 
-            String dataFound = (String) datas.elementAt(t);
-            if (!dataFound.startsWith("<referrer>")) {
-                appendStrToFile(MonochromeEncoder.encode((String) datas.elementAt(t)) + "\n", gifasmName);
+                String dataFound = (String) datas.elementAt(t);
+                if (!dataFound.startsWith("<referrer>")) {
+                    appendStrToFile(MonochromeEncoder.encode((String) datas.elementAt(t)) + "\n", gifasmName);
+                }
             }
-        }
+        } else {
 
+        }
     }
 
+    protected static void pngsToPetsciis(boolean mono, Vector datas, Vector pngs) {
+
+        for (int t = 0; t < pngs.size(); t++) {
+            String actualPath = (String) pngs.elementAt(t);
+            File tmp = new File(actualPath);
+            String[] petsciiatorArgs = {"/format=asm"+((!mono)?"2":""), "/target=" + tmp.getParent(), actualPath};
+            Petsciiator petsciiator = new Petsciiator(petsciiatorArgs);
+            petsciiator.run();
+            try {
+                tmp.delete();
+            } catch (Exception del) {
+
+            }
+            int pos = datas.indexOf(Petsciiator.stringRepresentation);//we don't waste kb if a ram portion is already there
+            if (pos == -1) {
+                datas.add(Petsciiator.stringRepresentation);
+            } else {
+                datas.add("<referrer>" + pos + "</referrer>");
+            }
+        }
+    }
+
+    
+    protected static void pngsToMonoPetsciis(Vector datas, Vector pngs) {
+        pngsToPetsciis(true,datas,pngs);
+    }
+    
     public static void appendStrToFile(String str, String fileName) {
         // Try block to check for exceptions
         try {

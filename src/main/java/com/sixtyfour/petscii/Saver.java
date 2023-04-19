@@ -124,6 +124,15 @@ public class Saver {
         return ret;
     }
 
+    /*added*/
+    public static String getRawColourData(File pic, ConvertedData data) {
+        String ret="";
+        int[] code=data.getColorRam();
+        for (int t=0;t<code.length;t++)
+            ret+=""+code[t]+((t<code.length-1)?",":"");
+        return ret;
+        
+    }
     public static String savePetsciiAsm(File pic, ConvertedData data, File targetFolder) {
         int[] screen = data.getScreenRam();
         String picName = pic.toString().replace("\\", "/");

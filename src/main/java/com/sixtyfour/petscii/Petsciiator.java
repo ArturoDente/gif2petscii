@@ -190,10 +190,16 @@ public class Petsciiator {
 					Saver.savePetsciiBin(pic, data, folder);
 				} 
                                 /*added*/
+                                
                                 if (formats.contains("asm")){
                                     
                                    // fileList.add(Saver.savePetsciiAsm(pic, data, folder));
                                    stringRepresentation=Saver.getRawScreenData(pic, data);
+                                }
+                                
+                                if (formats.contains("asmc")){
+                                    //note:if it contains asmc, it also contains asm
+                                    stringRepresentation+=Saver.getRawColourData(pic, data);
                                 }
 
 				Logger.log("Background color is: " + data.getBackGroundColor());
