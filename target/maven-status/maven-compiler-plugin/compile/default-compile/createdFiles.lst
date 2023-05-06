@@ -1,11 +1,11 @@
 com\sixtyfour\petscii\test\TestCodeConversion.class
 com\sixtyfour\petscii\AbstractColors.class
 com\sixtyfour\petscii\helper\Merger.class
+encoders\ColourEncoder.class
 com\sixtyfour\petscii\ColorReducer$Error.class
 com\sixtyfour\petscii\Bitmap$ColorEntry.class
 GifUtils\GifDecoder.class
 com\sixtyfour\petscii\Petscii.class
-monoEncoder\MonochromeEncoder.class
 com\sixtyfour\petscii\ColorMap.class
 com\sixtyfour\petscii\ConvertedData.class
 com\sixtyfour\petscii\GraphicsDevice.class
@@ -20,8 +20,10 @@ com\back28bit\gif2petscii\Gif2Petscii.class
 GifUtils\GifDecoder$GifFrame.class
 com\sixtyfour\petscii\Petsciiator$1.class
 com\sixtyfour\petscii\Bitmap.class
+encoders\MonochromeEncoder.class
 com\sixtyfour\petscii\Saver.class
 com\sixtyfour\petscii\test\TestDithering.class
 com\sixtyfour\petscii\Algorithm.class
 com\sixtyfour\petscii\Petscii$1.class
 com\sixtyfour\petscii\Vic2Colors.class
+encoders\Screenshot.class

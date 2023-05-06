@@ -9,13 +9,23 @@ import GifUtils.GifDecoder;
 import static GifUtils.GifDecoder.stripGifInPngs;
 import com.sixtyfour.petscii.Petsciiator;
 import java.io.BufferedWriter;
+import java.io.ByteArrayOutputStream;
 import java.io.File;
+import java.io.FileOutputStream;
 import java.io.FileWriter;
 import java.io.IOException;
+import java.io.InputStream;
+import java.io.OutputStream;
+import java.net.URL;
 import java.util.Vector;
 import java.util.logging.Level;
 import java.util.logging.Logger;
-import monoEncoder.MonochromeEncoder;
+import encoders.MonochromeEncoder;
+import encoders.Screenshot;
+import java.nio.ByteBuffer;
+import java.nio.file.Files;
+import java.nio.file.Paths;
+import org.apache.commons.io.FileUtils;
 
 /**
  *
@@ -23,6 +33,8 @@ import monoEncoder.MonochromeEncoder;
  */
 public class Gif2Petscii {
 
+    /*private static byte[] charsRaw;
+    private static byte[] coloursRaw;*/
     private static String getPropFromArgs(String prop, String[] args) {
         if (args == null || args.length == 0) {
             return "";
@@ -83,10 +95,10 @@ public class Gif2Petscii {
         Vector pngs = decoder.stripGifInPngs(path);
         //now path has given a lot of png files, I have to elaborate each one
 
-        if (isMono){
+        if (isMono) {
             pngsToMonoPetsciis(datas, pngs);
         } else {
-            
+            pngsToColourPetsciis(datas, pngs);
         }
 
         File forpath = new File(path);
@@ -133,7 +145,84 @@ public class Gif2Petscii {
                 }
             }
         } else {
+//colour
+            File crunch = new File("tscrunch.exe");
+            File decrunch = new File("decrunch.asm");
+           // File mainAsm = new File("main.asm");
 
+            if (crunch.exists()) {
+                try {
+                    crunch.delete();
+                } catch (Exception del) {
+                    System.out.println("error " + del.toString());
+                }
+            }
+            if (decrunch.exists()) {
+                try {
+                    decrunch.delete();
+                } catch (Exception del) {
+                    System.out.println("error " + del.toString());
+                }
+            }
+          /*  if (mainAsm.exists()) {
+                try {
+                    mainAsm.delete();
+                } catch (Exception del) {
+                    System.out.println("error " + del.toString());
+                }
+            }*/
+
+            try {
+                crunch.createNewFile();
+                decrunch.createNewFile();
+                Gif2Petscii tmp = new Gif2Petscii();
+                URL tscrunchUrl = tmp.getClass().getResource("/tscrunch.exe");
+                URL decrunchUrl = tmp.getClass().getResource("/decrunch.asm");
+
+                FileUtils.copyURLToFile(tscrunchUrl, crunch);//copy tscrunch.exe in the same folder of this jar
+                FileUtils.copyURLToFile(decrunchUrl, decrunch);//copy decrunch.asm in the same folder of this jar
+
+                File batchFile = new File("cruncher.bat");
+                if (batchFile.exists()) {
+                    batchFile.delete();
+                }
+                batchFile.createNewFile();
+
+                
+                appendStrToFile(encoders.ColourEncoder.getAsmPattern(datas.size(),deltacount),gifasmName);
+
+                for (int t = 0; t < datas.size(); t++) {
+                    int index=deltacount+t;
+                    byte[] charsFound = ((Screenshot) datas.elementAt(t)).getCharsRaw();
+                    byte[] coloursFound = ((Screenshot) datas.elementAt(t)).getColoursRaw();
+
+                    File tocrunchChars = new File(index + "Chars.bin");
+                    tocrunchChars.createNewFile();
+                    Files.write(Paths.get(index + "Chars.bin"), charsFound);
+
+                    File tocrunchColours = new File(index + "Colours.bin");
+                    tocrunchColours.createNewFile();
+                    Files.write(Paths.get(index + "Colours.bin"), coloursFound);
+
+                    //updating batch file to call in the end
+                    appendStrToFile("tscrunch " + index + "Chars.bin " + index + "Charscrunch.bin\n", "cruncher.bat");
+                    appendStrToFile("tscrunch " + index + "Colours.bin " + index + "Colourscrunch.bin\n", "cruncher.bat");
+                    appendStrToFile("del " + index + "Chars.bin\n", "cruncher.bat");
+                    appendStrToFile("del " + index + "Colours.bin\n", "cruncher.bat");
+                }
+
+                Runtime runtime = Runtime.getRuntime();
+                try {
+                    Process process = runtime.exec("cmd /c start cruncher.bat");
+                } catch (IOException e) {
+                    e.printStackTrace();
+                }
+
+            } catch (IOException ex) {
+                Logger.getLogger(Gif2Petscii.class.getName()).log(Level.SEVERE, null, ex);
+            } finally {
+
+            }
         }
     }
 
@@ -142,28 +231,46 @@ public class Gif2Petscii {
         for (int t = 0; t < pngs.size(); t++) {
             String actualPath = (String) pngs.elementAt(t);
             File tmp = new File(actualPath);
-            String[] petsciiatorArgs = {"/format=asm"+((!mono)?"2":""), "/target=" + tmp.getParent(), actualPath};
+            String[] petsciiatorArgs = {"/format=asm" + ((!mono) ? "c" : ""), "/target=" + tmp.getParent(), actualPath};
             Petsciiator petsciiator = new Petsciiator(petsciiatorArgs);
-            petsciiator.run();
+            petsciiator.run();//affects also charsRaw and coloursRaw
             try {
                 tmp.delete();
             } catch (Exception del) {
 
             }
-            int pos = datas.indexOf(Petsciiator.stringRepresentation);//we don't waste kb if a ram portion is already there
-            if (pos == -1) {
-                datas.add(Petsciiator.stringRepresentation);
+            if (!mono) {
+                datas.add(new Screenshot(convertIntArrayToByteArray(petsciiator.charsRaw), convertIntArrayToByteArray(petsciiator.coloursRaw)));
+
+                //coloursRaw = convertIntArrayToByteArray(petsciiator.coloursRaw);
             } else {
-                datas.add("<referrer>" + pos + "</referrer>");
+
+                int pos = datas.indexOf(Petsciiator.stringRepresentation);//we don't waste kb if a ram portion is already there
+                if (pos == -1) {
+                    datas.add(Petsciiator.stringRepresentation);
+                } else {
+                    datas.add("<referrer>" + pos + "</referrer>");
+                }
             }
         }
     }
 
-    
     protected static void pngsToMonoPetsciis(Vector datas, Vector pngs) {
-        pngsToPetsciis(true,datas,pngs);
+        pngsToPetsciis(true, datas, pngs);
     }
-    
+
+    protected static void pngsToColourPetsciis(Vector datas, Vector pngs) {
+        pngsToPetsciis(false, datas, pngs);
+    }
+
+    public static byte[] convertIntArrayToByteArray(int[] input) {
+        byte[] output = new byte[input.length];
+        for (int i = 0; i < input.length; i++) {
+            output[i] = (byte) input[i];
+        }
+        return output;
+    }
+
     public static void appendStrToFile(String str, String fileName) {
         // Try block to check for exceptions
         try {
@@ -184,4 +291,5 @@ public class Gif2Petscii {
             System.out.println("exception occurred" + e);
         }
     }
+
 }

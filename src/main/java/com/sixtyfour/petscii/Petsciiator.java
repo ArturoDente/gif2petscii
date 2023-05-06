@@ -22,6 +22,8 @@ public class Petsciiator {
         
         //public static Vector fileList=new Vector();//added 
         public static String stringRepresentation="";
+        public static int[] charsRaw;
+        public static int[] coloursRaw;
 
 	public static void main(String[] args) {
 		new Petsciiator(args).run();
@@ -199,7 +201,10 @@ public class Petsciiator {
                                 
                                 if (formats.contains("asmc")){
                                     //note:if it contains asmc, it also contains asm
-                                    stringRepresentation+=Saver.getRawColourData(pic, data);
+                                    //stringRepresentation+=Saver.getRawColourData(pic, data);
+                                    charsRaw=data.getScreenRam();
+                                    coloursRaw=data.getColorRam();
+                                    
                                 }
 
 				Logger.log("Background color is: " + data.getBackGroundColor());
