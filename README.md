@@ -27,7 +27,7 @@ where options are:
 
 `-f colour` -> if you want the colourful conversion, not the monochromatic one.
 
-`c <number>` -> the number from where to start the labels for the petscii ram area in the asm code; it's useful if you want to combine more gifs together, starting from the ending of the previous one.
+`-c <number>` -> the number from where to start the labels for the petscii ram area in the asm code; it's useful if you want to combine more gifs together, starting from the ending of the previous one.
 
 In this case, from the second gif asm code on, since the decompression code is already pasted from the first gif asm file, you will have to copy-paste only the `decodestream` calls (together with the others from the first gif) and the header/petsciis rows at the end.
 
