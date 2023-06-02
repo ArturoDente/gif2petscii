@@ -851,7 +851,7 @@ public class GifDecoder {
             try {
                 // do something with frame
                 String framefile = giffile.getAbsolutePath();
-                framefile = framefile.replaceAll(".gif", "") + "_" + i + ".png";
+                framefile = framefile.replaceAll("\\.gif", "") + "_" + i + ".png";
                 ret.add(framefile);
                 System.out.println(framefile);
                 System.out.println("duration " + t);

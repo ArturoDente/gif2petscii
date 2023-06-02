@@ -67,7 +67,7 @@ public class Gif2Petscii {
         int deltacount = 0;
         //String path = args[0];
 
-        String path = getPropFromArgs("-s", args);
+        String path = getPropFromArgs("-s", args);        
         if (args == null || path.trim().equals("")) {
             getHelp();
             System.exit(1);
@@ -92,6 +92,7 @@ public class Gif2Petscii {
         }
 
         GifDecoder decoder = new GifDecoder();
+        System.out.println("stripping pngs from "+path);
         Vector pngs = decoder.stripGifInPngs(path);
         //now path has given a lot of png files, I have to elaborate each one
 
