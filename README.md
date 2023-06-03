@@ -33,3 +33,5 @@ Hint: use ezgif.com to optimize, reduce and monochromize your gifs before using 
 
 ## Credits ##
 I use [Petsciiator](https://github.com/EgonOlsen71/petsciiator) inside the tool to convert gif frames into petsciis.
+
+*If you want, support me with a free donation on [PayPal](https://paypal.me/arturodente?country.x=IT&locale.x=it_IT), thanks!*
