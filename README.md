@@ -43,3 +43,5 @@ Hint: use ezgif.com to optimize, reduce and eventually monochromize your gifs be
 I use [Petsciiator](https://github.com/EgonOlsen71/petsciiator) inside the tool to convert gif frames into petsciis.
 
 I use [tscrunch](https://github.com/tonysavon/TSCrunch) from Antonio Savona embedding directly the .exe inside the .jar file.
+
+*If you want, support me with a free donation on [PayPal](https://paypal.me/arturodente?country.x=IT&locale.x=it_IT), thanks!*
