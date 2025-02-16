@@ -19,6 +19,7 @@ import java.util.logging.Logger;
  *
  * @author franc
  */
+@Deprecated
 public class MonochromeEncoder {
 //private static final char[] HEX_ARRAY = "0123456789ABCDEF".toCharArray();
 //

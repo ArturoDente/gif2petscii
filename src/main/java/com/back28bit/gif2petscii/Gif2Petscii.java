@@ -20,12 +20,13 @@ import java.net.URL;
 import java.util.Vector;
 import java.util.logging.Level;
 import java.util.logging.Logger;
-import encoders.MonochromeEncoder;
+//import encoders.MonochromeEncoder;
 import encoders.Screenshot;
 import java.nio.ByteBuffer;
 import java.nio.file.Files;
 import java.nio.file.Paths;
 import org.apache.commons.io.FileUtils;
+import org.apache.commons.cli.*;
 
 /**
  *
@@ -55,36 +56,63 @@ public class Gif2Petscii {
                 + "\n--------------------------------------------------------------\n"
                 + "usage: java -jar Gif2Petscii.jar <options>, where options are:\n"
                 + "\n-s <source gif file> ->the gif to convert (REQUIRED)"
-                + "\n-c <number> -> the number from where to start the labels for the petscii ram area in the asm code;it's useful if you want to combine more gifs together, starting from the ending of the previous one";
+                + "\n-c <number> -> the number from where to start the labels for the petscii ram area in the asm code;it's useful if you want to combine more gifs together, starting from the ending of the previous one"
+                + "\n-f colour -> if you want to try the experimental colour gif conversion with compression on frames.Requires Windows, sorry.";
 
         System.out.println(h);
     }
 
     public static void main(String[] args) {
 
-        //Petsciiator.fileList=new Vector();
+        Options options = new Options();
+        options.addOption("s", true, "Percorso del file");
+        options.addOption("c", true, "Numero intero");
+        options.addOption("f", true, "Stringa di una sola parola");
+
         Vector datas = new Vector();
         int deltacount = 0;
-        //String path = args[0];
+        String f = "";
+        String path = "";
+        //String c = null;
 
-        String path = getPropFromArgs("-s", args);        
+        CommandLineParser parser = new DefaultParser();
+        try {
+            // Effettua il parsing dei comandi
+            CommandLine cmd = parser.parse(options, args);
+
+            // Gestisci le opzioni
+            if (cmd.hasOption("s")) {
+                path = cmd.getOptionValue("s");
+                System.out.println("Percorso del file: " + path);
+            }
+            if (cmd.hasOption("c")) {
+                deltacount = Integer.parseInt(cmd.getOptionValue("c"));
+                System.out.println("Numero intero: " + deltacount);
+            }
+            if (cmd.hasOption("f")) {
+                f = cmd.getOptionValue("f");
+                System.out.println("Stringa: " + f);
+            }
+        } catch (ParseException e) {
+            System.out.println("Errore nel parsing dei comandi: " + e.getMessage());
+        }
+
+        // String path = getPropFromArgs("-s", args);        
         if (args == null || path.trim().equals("")) {
             getHelp();
             System.exit(1);
         }
 
-        String c = getPropFromArgs("-c", args);
-        if (!c.equals("")) {
-            deltacount = Integer.valueOf(c);
-        }
-
-        String f = getPropFromArgs("-f", args);
+        //String c = getPropFromArgs("-c", args);
+        //String f = getPropFromArgs("-f", args);
         boolean isMono = true;
         if (!f.equals("")) {
             if (f.equals("colour")) {
                 isMono = false;
+                encoders.ColourEncoder.forceMono=false;
             } else if (f.equals("mono")) {
                 isMono = true;
+                encoders.ColourEncoder.forceMono=true;
             } else {
                 getHelp();
                 System.exit(1);
@@ -92,11 +120,11 @@ public class Gif2Petscii {
         }
 
         GifDecoder decoder = new GifDecoder();
-        System.out.println("stripping pngs from "+path);
+        System.out.println("stripping pngs from " + path);
         Vector pngs = decoder.stripGifInPngs(path);
         //now path has given a lot of png files, I have to elaborate each one
 
-        if (isMono) {
+        if (false/*isMono*/) {
             pngsToMonoPetsciis(datas, pngs);
         } else {
             pngsToColourPetsciis(datas, pngs);
@@ -121,8 +149,8 @@ public class Gif2Petscii {
             System.exit(1);
         }
 
-        if (isMono) {
-
+        if (false/*isMono*/) {
+/*
             String mainloop = "                         decodestream petsciis<n>,header<n>\n";
             String loopstr = "";
             for (int t = 0; t < datas.size(); t++) {
@@ -144,12 +172,12 @@ public class Gif2Petscii {
                 if (!dataFound.startsWith("<referrer>")) {
                     appendStrToFile(MonochromeEncoder.encode((String) datas.elementAt(t)) + "\n", gifasmName);
                 }
-            }
+            }*/
         } else {
 //colour
             File crunch = new File("tscrunch.exe");
             File decrunch = new File("decrunch.asm");
-           // File mainAsm = new File("main.asm");
+            // File mainAsm = new File("main.asm");
 
             if (crunch.exists()) {
                 try {
@@ -165,7 +193,7 @@ public class Gif2Petscii {
                     System.out.println("error " + del.toString());
                 }
             }
-          /*  if (mainAsm.exists()) {
+            /*  if (mainAsm.exists()) {
                 try {
                     mainAsm.delete();
                 } catch (Exception del) {
@@ -189,28 +217,33 @@ public class Gif2Petscii {
                 }
                 batchFile.createNewFile();
 
-                
-                appendStrToFile(encoders.ColourEncoder.getAsmPattern(datas.size(),deltacount),gifasmName);
+                appendStrToFile(encoders.ColourEncoder.getAsmPattern(datas.size(), deltacount), gifasmName);
 
                 for (int t = 0; t < datas.size(); t++) {
-                    int index=deltacount+t;
+                    int index = deltacount + t;
                     byte[] charsFound = ((Screenshot) datas.elementAt(t)).getCharsRaw();
                     byte[] coloursFound = ((Screenshot) datas.elementAt(t)).getColoursRaw();
 
                     File tocrunchChars = new File(index + "Chars.bin");
                     tocrunchChars.createNewFile();
                     Files.write(Paths.get(index + "Chars.bin"), charsFound);
-
-                    File tocrunchColours = new File(index + "Colours.bin");
-                    tocrunchColours.createNewFile();
-                    Files.write(Paths.get(index + "Colours.bin"), coloursFound);
+                    if (!isMono) {
+                        File tocrunchColours = new File(index + "Colours.bin");
+                        tocrunchColours.createNewFile();
+                        Files.write(Paths.get(index + "Colours.bin"), coloursFound);
+                    }
 
                     //updating batch file to call in the end
                     appendStrToFile("tscrunch " + index + "Chars.bin " + index + "Charscrunch.bin\n", "cruncher.bat");
-                    appendStrToFile("tscrunch " + index + "Colours.bin " + index + "Colourscrunch.bin\n", "cruncher.bat");
+                    if (!isMono) {
+                        appendStrToFile("tscrunch " + index + "Colours.bin " + index + "Colourscrunch.bin\n", "cruncher.bat");
+                    }
                     appendStrToFile("del " + index + "Chars.bin\n", "cruncher.bat");
-                    appendStrToFile("del " + index + "Colours.bin\n", "cruncher.bat");
+                    if (!isMono) {
+                        appendStrToFile("del " + index + "Colours.bin\n", "cruncher.bat");
+                    }
                 }
+                appendStrToFile("exit\n", "cruncher.bat");
 
                 Runtime runtime = Runtime.getRuntime();
                 try {
