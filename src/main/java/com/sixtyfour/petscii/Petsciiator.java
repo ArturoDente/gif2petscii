@@ -5,6 +5,7 @@ import java.io.FilenameFilter;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.HashMap;
+import java.util.Hashtable;
 import java.util.List;
 import java.util.Locale;
 import java.util.Map;
@@ -24,6 +25,8 @@ public class Petsciiator {
         public static String stringRepresentation="";
         public static int[] charsRaw;
         public static int[] coloursRaw;
+        
+        public Hashtable backgrounds;
 
 	public static void main(String[] args) {
 		new Petsciiator(args).run();
@@ -54,7 +57,7 @@ public class Petsciiator {
 		System.out.println("type /? for more information\n\n");
 	}
 
-	public void run() {
+	public int run() {//changed from void to return bg color
 		if (hasArgument("?")) {
 			showHelp();
 			exit(0);
@@ -65,10 +68,11 @@ public class Petsciiator {
 			exit(1);
 		}
 
-		convert();
+		return convert();
 	}
 
-	private void convert() {
+	private int  convert() {//changed from void to return bg color. Nb: not intended for folder scan, it returns the last bg color in that case
+                int ret=0;
 		File[] files = null;
 		File src = new File(source);
 		if (src.isDirectory()) {
@@ -207,13 +211,15 @@ public class Petsciiator {
                                     
                                 }
 
-				Logger.log("Background color is: " + data.getBackGroundColor());
+                                ret=data.getBackGroundColor();
+				Logger.log("Background color is: " + ret);
 
 				Logger.log("Conversion done in " + (System.currentTimeMillis() - start) + "ms!");
 			} catch (Exception e) {
 				Logger.log("Failed to process " + pic + ": " + e.getMessage());
 			}
 		}
+                return ret;
 	}
 
 	private static void exit(int i) {

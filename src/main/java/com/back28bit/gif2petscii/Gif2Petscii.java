@@ -25,6 +25,7 @@ import encoders.Screenshot;
 import java.nio.ByteBuffer;
 import java.nio.file.Files;
 import java.nio.file.Paths;
+import java.util.Hashtable;
 import org.apache.commons.io.FileUtils;
 import org.apache.commons.cli.*;
 
@@ -70,6 +71,7 @@ public class Gif2Petscii {
         options.addOption("f", true, "Stringa di una sola parola");
 
         Vector datas = new Vector();
+        Vector<String> backgrounds=new Vector();
         int deltacount = 0;
         String f = "";
         String path = "";
@@ -125,9 +127,9 @@ public class Gif2Petscii {
         //now path has given a lot of png files, I have to elaborate each one
 
         if (false/*isMono*/) {
-            pngsToMonoPetsciis(datas, pngs);
+            pngsToMonoPetsciis(datas, pngs,null);
         } else {
-            pngsToColourPetsciis(datas, pngs);
+            pngsToColourPetsciis(datas, pngs,backgrounds);
         }
 
         File forpath = new File(path);
@@ -217,7 +219,7 @@ public class Gif2Petscii {
                 }
                 batchFile.createNewFile();
 
-                appendStrToFile(encoders.ColourEncoder.getAsmPattern(datas.size(), deltacount), gifasmName);
+                appendStrToFile(encoders.ColourEncoder.getAsmPattern(datas.size(), deltacount,backgrounds), gifasmName);
 
                 for (int t = 0; t < datas.size(); t++) {
                     int index = deltacount + t;
@@ -260,14 +262,14 @@ public class Gif2Petscii {
         }
     }
 
-    protected static void pngsToPetsciis(boolean mono, Vector datas, Vector pngs) {
+    protected static void pngsToPetsciis(boolean mono, Vector datas, Vector pngs, Vector backgrounds) {
 
         for (int t = 0; t < pngs.size(); t++) {
             String actualPath = (String) pngs.elementAt(t);
             File tmp = new File(actualPath);
             String[] petsciiatorArgs = {"/format=asm" + ((!mono) ? "c" : ""), "/target=" + tmp.getParent(), actualPath};
-            Petsciiator petsciiator = new Petsciiator(petsciiatorArgs);
-            petsciiator.run();//affects also charsRaw and coloursRaw
+            Petsciiator petsciiator = new Petsciiator(petsciiatorArgs);            
+            int bg=petsciiator.run();//affects also charsRaw and coloursRaw
             try {
                 tmp.delete();
             } catch (Exception del) {
@@ -275,7 +277,7 @@ public class Gif2Petscii {
             }
             if (!mono) {
                 datas.add(new Screenshot(convertIntArrayToByteArray(petsciiator.charsRaw), convertIntArrayToByteArray(petsciiator.coloursRaw)));
-
+                backgrounds.add(((Integer)bg).toString());
                 //coloursRaw = convertIntArrayToByteArray(petsciiator.coloursRaw);
             } else {
 
@@ -289,12 +291,12 @@ public class Gif2Petscii {
         }
     }
 
-    protected static void pngsToMonoPetsciis(Vector datas, Vector pngs) {
-        pngsToPetsciis(true, datas, pngs);
+    protected static void pngsToMonoPetsciis(Vector datas, Vector pngs, Vector bgs) {
+        pngsToPetsciis(true, datas, pngs,bgs);
     }
 
-    protected static void pngsToColourPetsciis(Vector datas, Vector pngs) {
-        pngsToPetsciis(false, datas, pngs);
+    protected static void pngsToColourPetsciis(Vector datas, Vector pngs, Vector bgs) {
+        pngsToPetsciis(false, datas, pngs,bgs ); 
     }
 
     public static byte[] convertIntArrayToByteArray(int[] input) {

@@ -4,6 +4,8 @@
  */
 package encoders;
 
+import java.util.Vector;
+
 /**
  *
  * @author franc
@@ -12,8 +14,9 @@ public class ColourEncoder {
 
     public static boolean forceMono = false;
 
-    public static String getAsmLoop() {
+    public static String getAsmLoop(String color) {
         String ret = " \n"
+                + ((color!=null)?"\n	lda "+color+"\n 	sta 53281\n	sta 53280\n":"")
                 + "	:TS_DECRUNCH(compressed_data<t>,1024)  \n"
                 + ((!forceMono) ? "    :TS_DECRUNCH(compressed_colours<t>,55296)  \n" : "");
         return ret;
@@ -27,7 +30,7 @@ public class ColourEncoder {
         return ret;
     }
 
-    public static String getAsmPattern(int n, int startfrom) {
+    public static String getAsmPattern(int n, int startfrom, Vector backgrounds) {
         String ret = ".pc = $1000 \"test\" \n"
                 + "    lda #0 \n"
                 + "    sta 53281 \n"
@@ -37,7 +40,18 @@ public class ColourEncoder {
                 + "animationloop: \n"
                 + "	//decrunches data to screen \n";
         for (int t = startfrom; t < startfrom + n; t++) {
-            ret += getAsmLoop().replaceAll("<t>", "" + t);
+            String color="0";
+            try{
+                color=(String)backgrounds.elementAt(t-startfrom);
+                if (t-startfrom>0){
+                    String prevCol=(String)backgrounds.elementAt(t-startfrom-1);
+                    if (color.equals(prevCol))
+                        color=null;
+                }
+            } catch (Exception e){
+                System.err.println(e.getMessage());
+            }
+            ret += getAsmLoop(color).replaceAll("<t>", "" + t);
         }
         ret += " \n"
                 + "	jmp animationloop \n";
